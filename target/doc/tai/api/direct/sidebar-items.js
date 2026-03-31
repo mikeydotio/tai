@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":["ANTHROPIC_VERSION","API_URL"],"struct":["DirectApiBackend"]};

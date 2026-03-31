@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["stdin_is_terminal","stdout_is_terminal"]};

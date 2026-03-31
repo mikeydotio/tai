@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["detect","parse_branch","parse_dirty","parse_is_repo"],"struct":["GitInfo"]};

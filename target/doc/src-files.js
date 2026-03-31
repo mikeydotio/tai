@@ -1,0 +1,2 @@
+createSrcSidebar('[["tai",["",[["api",[],["claude_cli.rs","direct.rs","mod.rs","response.rs","sse.rs"]],["env",[],["container.rs","git.rs","mod.rs","multiplexer.rs","os.rs","packages.rs","remote.rs","shell.rs","tty.rs"]]],["action.rs","cli.rs","config.rs","error.rs","exec.rs","main.rs","prompt.rs"]]]]');
+//{"start":19,"fragment_lengths":[282]}

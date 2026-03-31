@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["detect_all"],"mod":["container","git","multiplexer","os","packages","remote","shell","tty"],"struct":["EnvContext"]};

@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["basename_from_path","detect","detect_from_parent"]};

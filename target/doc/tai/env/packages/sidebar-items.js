@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":["KNOWN_MANAGERS"],"fn":["detect","filter_found"]};

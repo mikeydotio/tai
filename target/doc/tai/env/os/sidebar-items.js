@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["detect","detect_linux","detect_macos","parse_os_release","parse_proc_version"],"struct":["OsInfo"]};

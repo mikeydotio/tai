@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["act","dispatch","inform","propose","propose_with_input","sentinel_path","use_color"]};

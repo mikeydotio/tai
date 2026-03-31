@@ -1,0 +1,7 @@
+/home/mikey/tai/target/debug/deps/subtle-867ac1ff5347dd7b.d: /home/mikey/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/subtle-2.6.1/src/lib.rs
+
+/home/mikey/tai/target/debug/deps/libsubtle-867ac1ff5347dd7b.rlib: /home/mikey/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/subtle-2.6.1/src/lib.rs
+
+/home/mikey/tai/target/debug/deps/libsubtle-867ac1ff5347dd7b.rmeta: /home/mikey/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/subtle-2.6.1/src/lib.rs
+
+/home/mikey/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/subtle-2.6.1/src/lib.rs:
