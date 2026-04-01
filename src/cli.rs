@@ -59,6 +59,11 @@ pub struct Cli {
     #[arg(long)]
     pub provider: Option<Provider>,
 
+    // History
+    /// Show recent command history
+    #[arg(long)]
+    pub history: bool,
+
     // Debug
     #[arg(long)]
     pub env_json: bool,

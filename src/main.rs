@@ -7,6 +7,7 @@ use tai::cli;
 use tai::config;
 use tai::env;
 use tai::error;
+use tai::history;
 use tai::prompt;
 
 fn main() {
@@ -25,9 +26,14 @@ fn run() -> Result<i32, error::TaiError> {
     let cli_args = cli::Cli::parse();
 
     // 2. Build prompt (join args + read stdin if piped)
-    let prompt = build_prompt(&cli_args)?;
+    let prompt_text = build_prompt(&cli_args)?;
 
-    // 3. Handle --env-json early (no prompt required)
+    // 3. Handle --history early (no prompt required)
+    if cli_args.history {
+        return history::show(20);
+    }
+
+    // 4. Handle --env-json early (no prompt required)
     let stdin_tty = env::tty::stdin_is_terminal();
     if cli_args.env_json {
         let env_ctx = env::detect_all();
@@ -35,41 +41,62 @@ fn run() -> Result<i32, error::TaiError> {
         return Ok(0);
     }
 
-    // 4. Require a prompt for all other operations
-    if prompt.is_empty() {
+    // 5. Require a prompt for all other operations
+    if prompt_text.is_empty() {
         return Err(error::TaiError::NoPrompt);
     }
 
-    // 5. Resolve config
+    // 6. Resolve config
     let config = config::resolve(&cli_args, stdin_tty)?;
 
-    // 6. Detect environment
+    // 7. Detect environment
     let env_ctx = env::detect_all();
 
-    // 7. Assemble prompt
-    let full_prompt = prompt::assemble(&env_ctx, &prompt, &config);
+    // 8. Assemble prompt
+    let full_prompt = prompt::assemble(&env_ctx, &prompt_text, &config);
 
-    // 8. Debug output: show prompt
+    // 9. Debug output: show prompt
     if cli_args.debug {
         eprintln!("--- PROMPT ---\n{}\n--- END ---", full_prompt);
     }
 
-    // 9. Create API backend
+    // 10. Create API backend
     let backend = api::create_backend(&config)?;
 
-    // 10. Make API call
+    // 11. Make API call
     let raw_response = backend.call(&full_prompt, &config.model)?;
 
-    // 11. Debug output: show raw response
+    // 12. Debug output: show raw response
     if cli_args.debug {
         eprintln!("--- RESPONSE ---\n{}\n--- END ---", raw_response);
     }
 
-    // 12. Parse response
+    // 13. Parse response
     let response = api::response::parse_response(&raw_response)?;
 
-    // 13. Dispatch action
-    action::dispatch(&response, &config, &env_ctx, backend.as_ref())
+    // 14. Dispatch action
+    let result = action::dispatch(&response, &config, &env_ctx, backend.as_ref());
+
+    // 15. Record to history (infallible — errors go to stderr)
+    let declined = matches!(&result, Err(error::TaiError::UserDeclined));
+    let exit_code = match &result {
+        Ok(code) => *code,
+        Err(e) => e.exit_code(),
+    };
+    let choice = history::user_choice(config.action, declined);
+    let action_str = format!("{:?}", config.action).to_lowercase();
+    let provider_str = format!("{:?}", config.provider).to_lowercase();
+    history::record(
+        &prompt_text,
+        response.command.as_deref(),
+        &action_str,
+        &config.model,
+        &provider_str,
+        exit_code,
+        choice,
+    );
+
+    result
 }
 
 /// Build the prompt string from CLI args and optionally stdin.

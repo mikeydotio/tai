@@ -5,4 +5,5 @@ pub mod config;
 pub mod env;
 pub mod error;
 pub mod exec;
+pub mod history;
 pub mod prompt;
