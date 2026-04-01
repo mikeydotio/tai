@@ -53,9 +53,8 @@ impl ApiBackend for CodexCliBackend {
         let mut accumulated = String::new();
 
         for line in reader.lines() {
-            let line = line.map_err(|e| {
-                TaiError::ApiRequest(format!("failed to read codex output: {}", e))
-            })?;
+            let line = line
+                .map_err(|e| TaiError::ApiRequest(format!("failed to read codex output: {}", e)))?;
             out.write_all(line.as_bytes()).ok();
             out.write_all(b"\n").ok();
             accumulated.push_str(&line);

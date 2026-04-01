@@ -71,17 +71,13 @@ fn detect_linux() -> OsInfo {
         .ok()
         .and_then(|content| parse_proc_version(&content))
         .or_else(|| {
-            Command::new("uname")
-                .arg("-r")
-                .output()
-                .ok()
-                .and_then(|o| {
-                    if o.status.success() {
-                        Some(String::from_utf8_lossy(&o.stdout).trim().to_string())
-                    } else {
-                        None
-                    }
-                })
+            Command::new("uname").arg("-r").output().ok().and_then(|o| {
+                if o.status.success() {
+                    Some(String::from_utf8_lossy(&o.stdout).trim().to_string())
+                } else {
+                    None
+                }
+            })
         });
 
     OsInfo {
@@ -105,17 +101,13 @@ fn detect_macos() -> OsInfo {
             }
         });
 
-    let kernel = Command::new("uname")
-        .arg("-r")
-        .output()
-        .ok()
-        .and_then(|o| {
-            if o.status.success() {
-                Some(String::from_utf8_lossy(&o.stdout).trim().to_string())
-            } else {
-                None
-            }
-        });
+    let kernel = Command::new("uname").arg("-r").output().ok().and_then(|o| {
+        if o.status.success() {
+            Some(String::from_utf8_lossy(&o.stdout).trim().to_string())
+        } else {
+            None
+        }
+    });
 
     OsInfo {
         os: "macos".to_string(),

@@ -30,8 +30,9 @@ impl ApiBackend for ClaudeCliBackend {
         let stdout = String::from_utf8_lossy(&output.stdout).to_string();
 
         // The claude CLI with --output-format json returns a JSON object with a `result` field.
-        let parsed: serde_json::Value = serde_json::from_str(&stdout)
-            .map_err(|e| TaiError::ApiRequest(format!("failed to parse claude JSON output: {}", e)))?;
+        let parsed: serde_json::Value = serde_json::from_str(&stdout).map_err(|e| {
+            TaiError::ApiRequest(format!("failed to parse claude JSON output: {}", e))
+        })?;
 
         match parsed.get("result").and_then(|r| r.as_str()) {
             Some(text) => Ok(text.to_string()),
@@ -65,8 +66,9 @@ impl ApiBackend for ClaudeCliBackend {
         let mut accumulated = String::new();
 
         for line in reader.lines() {
-            let line = line
-                .map_err(|e| TaiError::ApiRequest(format!("failed to read claude output: {}", e)))?;
+            let line = line.map_err(|e| {
+                TaiError::ApiRequest(format!("failed to read claude output: {}", e))
+            })?;
             out.write_all(line.as_bytes()).ok();
             out.write_all(b"\n").ok();
             accumulated.push_str(&line);

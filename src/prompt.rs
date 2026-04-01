@@ -34,8 +34,7 @@ Respond with ONLY this JSON object, no other text:
 
 /// Assemble the full prompt string sent to the LLM.
 pub fn assemble(env: &EnvContext, query: &str, config: &ResolvedConfig) -> String {
-    let env_json =
-        serde_json::to_string_pretty(env).expect("EnvContext serialization cannot fail");
+    let env_json = serde_json::to_string_pretty(env).expect("EnvContext serialization cannot fail");
 
     let complexity_clause = match config.complexity {
         ComplexityMode::Human => HUMAN_COMPLEXITY,
@@ -58,19 +57,13 @@ pub fn assemble(env: &EnvContext, query: &str, config: &ResolvedConfig) -> Strin
 
     format!(
         "{}\n\n## Environment\n```json\n{}\n```\n\n## User Request\n{}\n\n{}\n\n{}{}\n",
-        SYSTEM_PREAMBLE,
-        env_json,
-        query,
-        complexity_clause,
-        conditional_clauses,
-        RESPONSE_FORMAT,
+        SYSTEM_PREAMBLE, env_json, query, complexity_clause, conditional_clauses, RESPONSE_FORMAT,
     )
 }
 
 /// Assemble the explanation prompt for the `?` action in propose mode.
 pub fn assemble_explain(env: &EnvContext, command: &str) -> String {
-    let env_json =
-        serde_json::to_string_pretty(env).expect("EnvContext serialization cannot fail");
+    let env_json = serde_json::to_string_pretty(env).expect("EnvContext serialization cannot fail");
 
     format!(
         "Explain this command in detail. What does each part do? Any risks?\n\n\

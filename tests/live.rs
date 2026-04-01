@@ -10,12 +10,12 @@
 //! Each test reads its required API key from the environment and panics
 //! with a clear message if it's missing or empty.
 
+use tai::api::ApiBackend;
 use tai::api::claude_cli::ClaudeCliBackend;
 use tai::api::direct::DirectApiBackend;
 use tai::api::gemini_direct::GeminiDirectBackend;
 use tai::api::openai_direct::OpenAiDirectBackend;
 use tai::api::response::parse_response;
-use tai::api::ApiBackend;
 
 /// The prompt we send to all providers. It asks for a specific JSON format
 /// that matches tai's LlmResponse schema.
@@ -37,9 +37,7 @@ fn require_key(var: &str) -> String {
 }
 
 fn has_key(var: &str) -> bool {
-    std::env::var(var)
-        .map(|v| !v.is_empty())
-        .unwrap_or(false)
+    std::env::var(var).map(|v| !v.is_empty()).unwrap_or(false)
 }
 
 fn has_cli(name: &str) -> bool {
@@ -75,9 +73,15 @@ fn anthropic_direct_stream() {
     let result = backend.call_stream(TEST_PROMPT, "claude-sonnet-4-20250514", &mut output);
 
     let accumulated = result.expect("Anthropic streaming should succeed");
-    assert!(!accumulated.is_empty(), "accumulated text should not be empty");
+    assert!(
+        !accumulated.is_empty(),
+        "accumulated text should not be empty"
+    );
     let written = String::from_utf8(output).expect("output should be valid UTF-8");
-    assert_eq!(accumulated, written, "accumulated should match written output");
+    assert_eq!(
+        accumulated, written,
+        "accumulated should match written output"
+    );
 }
 
 #[test]
@@ -151,7 +155,10 @@ fn anthropic_cli_stream() {
     let result = backend.call_stream(TEST_PROMPT, "claude-sonnet-4-20250514", &mut output);
 
     let accumulated = result.expect("claude CLI streaming should succeed");
-    assert!(!accumulated.is_empty(), "accumulated text should not be empty");
+    assert!(
+        !accumulated.is_empty(),
+        "accumulated text should not be empty"
+    );
 }
 
 #[test]
@@ -209,7 +216,10 @@ fn openai_direct_stream() {
         "accumulated text should not be empty"
     );
     let written = String::from_utf8(output).expect("output should be valid UTF-8");
-    assert_eq!(accumulated, written, "accumulated should match written output");
+    assert_eq!(
+        accumulated, written,
+        "accumulated should match written output"
+    );
 }
 
 #[test]
@@ -337,7 +347,8 @@ fn gemini_direct_command_response() {
 #[test]
 #[ignore]
 fn all_providers_return_parseable_response() {
-    let prompt = r#"Respond with ONLY this JSON, no other text: {"command": null, "explanation": "ok"}"#;
+    let prompt =
+        r#"Respond with ONLY this JSON, no other text: {"command": null, "explanation": "ok"}"#;
 
     if has_key("ANTHROPIC_API_KEY") {
         let backend = DirectApiBackend::new(require_key("ANTHROPIC_API_KEY"));
@@ -369,25 +380,28 @@ fn default_models_are_accepted() {
     if has_key("ANTHROPIC_API_KEY") {
         let backend = DirectApiBackend::new(require_key("ANTHROPIC_API_KEY"));
         let model = tai::config::default_model(tai::cli::Provider::Anthropic);
-        backend
-            .call("Say hi", model)
-            .expect(&format!("Anthropic default model '{}' should be accepted", model));
+        backend.call("Say hi", model).expect(&format!(
+            "Anthropic default model '{}' should be accepted",
+            model
+        ));
     }
 
     if has_key("OPENAI_API_KEY") {
         let backend = OpenAiDirectBackend::new(require_key("OPENAI_API_KEY"));
         let model = tai::config::default_model(tai::cli::Provider::OpenAi);
-        backend
-            .call("Say hi", model)
-            .expect(&format!("OpenAI default model '{}' should be accepted", model));
+        backend.call("Say hi", model).expect(&format!(
+            "OpenAI default model '{}' should be accepted",
+            model
+        ));
     }
 
     if has_key("GEMINI_API_KEY") {
         let backend = GeminiDirectBackend::new(require_key("GEMINI_API_KEY"));
         let model = tai::config::default_model(tai::cli::Provider::Google);
-        backend
-            .call("Say hi", model)
-            .expect(&format!("Gemini default model '{}' should be accepted", model));
+        backend.call("Say hi", model).expect(&format!(
+            "Gemini default model '{}' should be accepted",
+            model
+        ));
     }
 }
 

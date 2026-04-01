@@ -163,20 +163,22 @@ pub fn resolve(cli: &Cli, stdin_is_tty: bool) -> Result<ResolvedConfig, TaiError
     let resolved_model = model.unwrap_or_else(|| default_model(resolved_provider).to_string());
 
     // Resolve API key: explicit --api-key > per-provider config > legacy config > env var
-    let resolved_key = api_key.or(match resolved_provider {
-        Provider::Anthropic => anthropic_api_key,
-        Provider::OpenAi => openai_api_key,
-        Provider::Google => gemini_api_key,
-    }).or_else(|| {
-        // Per-provider env var
-        match resolved_provider {
-            Provider::Anthropic => std::env::var("ANTHROPIC_API_KEY").ok(),
-            Provider::OpenAi => std::env::var("OPENAI_API_KEY").ok(),
-            Provider::Google => std::env::var("GEMINI_API_KEY")
-                .ok()
-                .or_else(|| std::env::var("GOOGLE_API_KEY").ok()),
-        }
-    });
+    let resolved_key = api_key
+        .or(match resolved_provider {
+            Provider::Anthropic => anthropic_api_key,
+            Provider::OpenAi => openai_api_key,
+            Provider::Google => gemini_api_key,
+        })
+        .or_else(|| {
+            // Per-provider env var
+            match resolved_provider {
+                Provider::Anthropic => std::env::var("ANTHROPIC_API_KEY").ok(),
+                Provider::OpenAi => std::env::var("OPENAI_API_KEY").ok(),
+                Provider::Google => std::env::var("GEMINI_API_KEY")
+                    .ok()
+                    .or_else(|| std::env::var("GOOGLE_API_KEY").ok()),
+            }
+        });
 
     Ok(ResolvedConfig {
         action,
@@ -289,8 +291,7 @@ mod tests {
 
     #[test]
     fn toml_parsing() {
-        let fc: FileConfig =
-            toml::from_str("action = \"act\"\ncomplexity = \"agent\"").unwrap();
+        let fc: FileConfig = toml::from_str("action = \"act\"\ncomplexity = \"agent\"").unwrap();
         assert_eq!(fc.action, Some(ActionMode::Act));
         assert_eq!(fc.complexity, Some(ComplexityMode::Agent));
     }
@@ -405,15 +406,24 @@ non_tty_action = "act"
 
     #[test]
     fn default_model_per_provider() {
-        assert_eq!(default_model(Provider::Anthropic), "claude-sonnet-4-20250514");
+        assert_eq!(
+            default_model(Provider::Anthropic),
+            "claude-sonnet-4-20250514"
+        );
         assert_eq!(default_model(Provider::OpenAi), "gpt-4o");
         assert_eq!(default_model(Provider::Google), "gemini-2.5-flash");
     }
 
     #[test]
     fn provider_flag_overrides_inference() {
-        let cli =
-            Cli::parse_from(["tai", "--provider", "openai", "--model", "claude-opus-4", "hello"]);
+        let cli = Cli::parse_from([
+            "tai",
+            "--provider",
+            "openai",
+            "--model",
+            "claude-opus-4",
+            "hello",
+        ]);
         let config = resolve(&cli, true).unwrap();
         assert_eq!(config.provider, Provider::OpenAi);
         assert_eq!(config.model, "claude-opus-4");

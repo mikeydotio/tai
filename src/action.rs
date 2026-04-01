@@ -67,22 +67,22 @@ fn act(cmd: &str, _explanation: &str) -> Result<i32, TaiError> {
     if let Some(ref path) = sentinel_path
         && !path.exists()
     {
-            if use_color() {
-                eprintln!(
-                    "{}",
-                    "tai: warning: --act executes commands without confirmation. Use with caution."
-                        .yellow()
-                );
-            } else {
-                eprintln!(
-                    "tai: warning: --act executes commands without confirmation. Use with caution."
-                );
-            }
-            // Create sentinel file (and parent dirs if needed)
-            if let Some(parent) = path.parent() {
-                let _ = std::fs::create_dir_all(parent);
-            }
-            let _ = std::fs::write(path, "");
+        if use_color() {
+            eprintln!(
+                "{}",
+                "tai: warning: --act executes commands without confirmation. Use with caution."
+                    .yellow()
+            );
+        } else {
+            eprintln!(
+                "tai: warning: --act executes commands without confirmation. Use with caution."
+            );
+        }
+        // Create sentinel file (and parent dirs if needed)
+        if let Some(parent) = path.parent() {
+            let _ = std::fs::create_dir_all(parent);
+        }
+        let _ = std::fs::write(path, "");
     }
 
     if use_color() {
@@ -97,7 +97,11 @@ fn act(cmd: &str, _explanation: &str) -> Result<i32, TaiError> {
 /// Return the path to the act-acknowledged sentinel file.
 fn sentinel_path() -> Option<std::path::PathBuf> {
     if let Ok(xdg) = std::env::var("XDG_CONFIG_HOME") {
-        return Some(std::path::PathBuf::from(xdg).join("tai").join("act-acknowledged"));
+        return Some(
+            std::path::PathBuf::from(xdg)
+                .join("tai")
+                .join("act-acknowledged"),
+        );
     }
     if let Ok(home) = std::env::var("HOME") {
         return Some(
@@ -120,7 +124,14 @@ fn propose(
     model: &str,
     backend: &dyn ApiBackend,
 ) -> Result<i32, TaiError> {
-    propose_with_input(cmd, explanation, env, model, backend, &mut std::io::stdin().lock())
+    propose_with_input(
+        cmd,
+        explanation,
+        env,
+        model,
+        backend,
+        &mut std::io::stdin().lock(),
+    )
 }
 
 /// Inner propose implementation that accepts a `BufRead` for testability.

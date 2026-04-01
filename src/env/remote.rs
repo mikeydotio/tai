@@ -3,10 +3,7 @@
 /// Detect remote session from env var values and optional process tree check.
 /// `ssh_connection`: value of $SSH_CONNECTION
 /// `is_mosh_in_tree`: whether mosh-server was found in process ancestry (Linux only)
-pub fn detect_from_env(
-    ssh_connection: Option<&str>,
-    is_mosh_in_tree: bool,
-) -> Option<String> {
+pub fn detect_from_env(ssh_connection: Option<&str>, is_mosh_in_tree: bool) -> Option<String> {
     if ssh_connection.is_some_and(|v| !v.is_empty()) {
         return Some("ssh".to_string());
     }
@@ -88,10 +85,7 @@ mod tests {
 
     #[test]
     fn detects_mosh() {
-        assert_eq!(
-            detect_from_env(None, true),
-            Some("mosh".to_string())
-        );
+        assert_eq!(detect_from_env(None, true), Some("mosh".to_string()));
     }
 
     #[test]

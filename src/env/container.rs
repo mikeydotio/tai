@@ -103,7 +103,8 @@ mod tests {
 
     #[test]
     fn detects_docker_from_mountinfo() {
-        let mountinfo = "1234 100 8:1 / / rw - overlay overlay rw,lowerdir=/var/lib/docker/overlay2/abc";
+        let mountinfo =
+            "1234 100 8:1 / / rw - overlay overlay rw,lowerdir=/var/lib/docker/overlay2/abc";
         assert_eq!(
             detect_from_inputs(false, false, None, None, Some(mountinfo)),
             Some("docker".to_string())
@@ -112,7 +113,8 @@ mod tests {
 
     #[test]
     fn detects_kubernetes_from_mountinfo() {
-        let mountinfo = "1234 100 8:1 / / rw - overlay overlay rw,lowerdir=/sys/fs/cgroup/kubepods/abc";
+        let mountinfo =
+            "1234 100 8:1 / / rw - overlay overlay rw,lowerdir=/sys/fs/cgroup/kubepods/abc";
         assert_eq!(
             detect_from_inputs(false, false, None, None, Some(mountinfo)),
             Some("kubernetes".to_string())
@@ -146,17 +148,11 @@ mod tests {
 
     #[test]
     fn none_when_all_absent() {
-        assert_eq!(
-            detect_from_inputs(false, false, None, None, None),
-            None
-        );
+        assert_eq!(detect_from_inputs(false, false, None, None, None), None);
     }
 
     #[test]
     fn empty_container_env_ignored() {
-        assert_eq!(
-            detect_from_inputs(false, false, Some(""), None, None),
-            None
-        );
+        assert_eq!(detect_from_inputs(false, false, Some(""), None, None), None);
     }
 }

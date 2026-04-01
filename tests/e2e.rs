@@ -62,11 +62,7 @@ impl MockCli {
     fn failing(name: &str, exit_code: i32) -> Self {
         let dir = tempfile::tempdir().unwrap();
         let script_path = dir.path().join(name);
-        fs::write(
-            &script_path,
-            format!("#!/bin/sh\nexit {}\n", exit_code),
-        )
-        .unwrap();
+        fs::write(&script_path, format!("#!/bin/sh\nexit {}\n", exit_code)).unwrap();
         #[cfg(unix)]
         {
             use std::os::unix::fs::PermissionsExt;
@@ -119,7 +115,11 @@ fn llm_response_info_only(explanation: &str) -> String {
 
 /// Run tai with given args and environment overrides.
 /// Returns (exit_code, stdout, stderr).
-fn run_tai(args: &[&str], env_overrides: &[(&str, &str)], path_override: Option<&str>) -> (i32, String, String) {
+fn run_tai(
+    args: &[&str],
+    env_overrides: &[(&str, &str)],
+    path_override: Option<&str>,
+) -> (i32, String, String) {
     let mut cmd = Command::new(tai_bin());
     cmd.args(args);
 
@@ -185,13 +185,13 @@ fn anthropic_cli_inform_mode() {
     let mock = MockCli::claude(&response);
     let path = path_with_mock(mock.path());
 
-    let (code, stdout, stderr) = run_tai(
-        &["--inform", "list files"],
-        &[],
-        Some(&path),
-    );
+    let (code, stdout, stderr) = run_tai(&["--inform", "list files"], &[], Some(&path));
     assert_eq!(code, 0, "stderr: {}", stderr);
-    assert!(stdout.contains("ls -la"), "stdout should contain the command: {}", stdout);
+    assert!(
+        stdout.contains("ls -la"),
+        "stdout should contain the command: {}",
+        stdout
+    );
 }
 
 #[test]
@@ -200,11 +200,7 @@ fn anthropic_cli_info_response() {
     let mock = MockCli::claude(&response);
     let path = path_with_mock(mock.path());
 
-    let (code, stdout, _) = run_tai(
-        &["--inform", "what is using port 3000"],
-        &[],
-        Some(&path),
-    );
+    let (code, stdout, _) = run_tai(&["--inform", "what is using port 3000"], &[], Some(&path));
     assert_eq!(code, 0);
     assert!(
         stdout.contains("Port 3000"),
@@ -219,11 +215,7 @@ fn anthropic_cli_act_mode() {
     let mock = MockCli::claude(&response);
     let path = path_with_mock(mock.path());
 
-    let (code, stdout, stderr) = run_tai(
-        &["--act", "say hello"],
-        &[],
-        Some(&path),
-    );
+    let (code, stdout, stderr) = run_tai(&["--act", "say hello"], &[], Some(&path));
     assert_eq!(code, 0, "stderr: {}", stderr);
     assert!(
         stderr.contains("tai: running:"),
@@ -255,17 +247,9 @@ fn anthropic_cli_with_explicit_provider() {
 fn anthropic_cli_not_found_exits_69() {
     let path = path_without_cli_tools();
 
-    let (code, _, stderr) = run_tai(
-        &["test prompt"],
-        &[],
-        Some(&path),
-    );
+    let (code, _, stderr) = run_tai(&["test prompt"], &[], Some(&path));
     assert_eq!(code, 69, "stderr: {}", stderr);
-    assert!(
-        stderr.contains("not found in PATH"),
-        "stderr: {}",
-        stderr
-    );
+    assert!(stderr.contains("not found in PATH"), "stderr: {}", stderr);
 }
 
 #[test]
@@ -273,12 +257,12 @@ fn anthropic_cli_failing_exits_with_api_error() {
     let mock = MockCli::failing("claude", 1);
     let path = path_with_mock(mock.path());
 
-    let (code, _, stderr) = run_tai(
-        &["--inform", "test"],
-        &[],
-        Some(&path),
+    let (code, _, stderr) = run_tai(&["--inform", "test"], &[], Some(&path));
+    assert_eq!(
+        code, 76,
+        "should be API error exit code, stderr: {}",
+        stderr
     );
-    assert_eq!(code, 76, "should be API error exit code, stderr: {}", stderr);
 }
 
 // ============================================================================
@@ -367,18 +351,18 @@ fn openai_inferred_from_model_name() {
         &[],
         Some(&path),
     );
-    assert_eq!(code, 0, "should auto-detect OpenAI from model, stderr: {}", stderr);
+    assert_eq!(
+        code, 0,
+        "should auto-detect OpenAI from model, stderr: {}",
+        stderr
+    );
 }
 
 #[test]
 fn openai_codex_not_found_and_no_key() {
     let path = path_without_cli_tools();
 
-    let (code, _, stderr) = run_tai(
-        &["--provider", "openai", "test"],
-        &[],
-        Some(&path),
-    );
+    let (code, _, stderr) = run_tai(&["--provider", "openai", "test"], &[], Some(&path));
     assert_eq!(code, 65, "should be config error, stderr: {}", stderr);
     assert!(
         stderr.contains("OPENAI_API_KEY") || stderr.contains("codex"),
@@ -396,7 +380,14 @@ fn openai_direct_with_api_key_flag() {
     let path = path_without_cli_tools();
 
     let (code, _, stderr) = run_tai(
-        &["--provider", "openai", "--api-key", "sk-fake-openai-key", "--inform", "test"],
+        &[
+            "--provider",
+            "openai",
+            "--api-key",
+            "sk-fake-openai-key",
+            "--inform",
+            "test",
+        ],
         &[],
         Some(&path),
     );
@@ -451,7 +442,14 @@ fn gemini_direct_with_api_key_flag() {
     let path = path_without_cli_tools();
 
     let (code, _, stderr) = run_tai(
-        &["--provider", "google", "--api-key", "AIzaSy-fake-key", "--inform", "test"],
+        &[
+            "--provider",
+            "google",
+            "--api-key",
+            "AIzaSy-fake-key",
+            "--inform",
+            "test",
+        ],
         &[],
         Some(&path),
     );
@@ -479,7 +477,11 @@ fn gemini_google_api_key_env_var() {
         &[("GOOGLE_API_KEY", "AIzaSy-fake-key")],
         Some(&path),
     );
-    assert_eq!(code, 76, "GOOGLE_API_KEY should work as fallback, stderr: {}", stderr);
+    assert_eq!(
+        code, 76,
+        "GOOGLE_API_KEY should work as fallback, stderr: {}",
+        stderr
+    );
 }
 
 #[test]
@@ -491,18 +493,18 @@ fn gemini_inferred_from_model_name() {
         &[("GEMINI_API_KEY", "AIzaSy-fake-key")],
         Some(&path),
     );
-    assert_eq!(code, 76, "should auto-detect Google from model, stderr: {}", stderr);
+    assert_eq!(
+        code, 76,
+        "should auto-detect Google from model, stderr: {}",
+        stderr
+    );
 }
 
 #[test]
 fn gemini_no_auth_exits_config_error() {
     let path = path_without_cli_tools();
 
-    let (code, _, stderr) = run_tai(
-        &["--provider", "google", "test"],
-        &[],
-        Some(&path),
-    );
+    let (code, _, stderr) = run_tai(&["--provider", "google", "test"], &[], Some(&path));
     assert_eq!(code, 65, "should be config error, stderr: {}", stderr);
     assert!(
         stderr.contains("GEMINI_API_KEY"),
@@ -534,11 +536,7 @@ fn model_gpt4o_infers_openai() {
     let mock = MockCli::codex(&response);
     let path = path_with_mock(mock.path());
 
-    let (code, _, stderr) = run_tai(
-        &["--model", "gpt-4o", "--inform", "test"],
-        &[],
-        Some(&path),
-    );
+    let (code, _, stderr) = run_tai(&["--model", "gpt-4o", "--inform", "test"], &[], Some(&path));
     assert_eq!(code, 0, "gpt-4o should use codex CLI, stderr: {}", stderr);
 }
 
@@ -553,20 +551,24 @@ fn model_o1_preview_infers_openai() {
         &[],
         Some(&path),
     );
-    assert_eq!(code, 0, "o1-preview should infer OpenAI, stderr: {}", stderr);
+    assert_eq!(
+        code, 0,
+        "o1-preview should infer OpenAI, stderr: {}",
+        stderr
+    );
 }
 
 #[test]
 fn model_gemini_infers_google() {
     let path = path_without_cli_tools();
 
-    let (code, _, stderr) = run_tai(
-        &["--model", "gemini-2.5-flash", "test"],
-        &[],
-        Some(&path),
-    );
+    let (code, _, stderr) = run_tai(&["--model", "gemini-2.5-flash", "test"], &[], Some(&path));
     // No Google auth → config error (65), not CLI not found (69)
-    assert_eq!(code, 65, "gemini model should infer Google provider, stderr: {}", stderr);
+    assert_eq!(
+        code, 65,
+        "gemini model should infer Google provider, stderr: {}",
+        stderr
+    );
     assert!(stderr.contains("GEMINI_API_KEY"), "stderr: {}", stderr);
 }
 
@@ -581,7 +583,11 @@ fn model_claude_stays_anthropic() {
         &[],
         Some(&path),
     );
-    assert_eq!(code, 0, "claude model should use claude CLI, stderr: {}", stderr);
+    assert_eq!(
+        code, 0,
+        "claude model should use claude CLI, stderr: {}",
+        stderr
+    );
 }
 
 // ============================================================================
@@ -633,7 +639,11 @@ api_key = "sk-ant-api03-fake-legacy-key"
         Some(&path),
     );
     // Should work (legacy api_mode maps to Anthropic), reach API call
-    assert_eq!(code, 76, "legacy config should still work, stderr: {}", stderr);
+    assert_eq!(
+        code, 76,
+        "legacy config should still work, stderr: {}",
+        stderr
+    );
     assert!(
         stderr.contains("deprecated"),
         "should warn about deprecated api_mode: {}",
@@ -663,7 +673,11 @@ openai_api_key = "sk-fake-key"
         Some(&path),
     );
     // provider=openai should win, use OpenAI direct
-    assert_eq!(code, 76, "provider should override api_mode, stderr: {}", stderr);
+    assert_eq!(
+        code, 76,
+        "provider should override api_mode, stderr: {}",
+        stderr
+    );
 }
 
 // ============================================================================
@@ -677,7 +691,13 @@ fn api_key_flag_takes_priority_over_env_var() {
     let path = path_without_cli_tools();
 
     let (code, _, stderr) = run_tai(
-        &["--api-key", "sk-ant-api03-flag-key", "--inform", "--debug", "test"],
+        &[
+            "--api-key",
+            "sk-ant-api03-flag-key",
+            "--inform",
+            "--debug",
+            "test",
+        ],
         &[("ANTHROPIC_API_KEY", "sk-ant-api03-env-key")],
         Some(&path),
     );
@@ -692,7 +712,14 @@ fn cli_flag_provider_overrides_model_inference() {
     let path = path_with_mock(mock.path());
 
     let (code, _, stderr) = run_tai(
-        &["--provider", "anthropic", "--model", "gpt-4o", "--inform", "test"],
+        &[
+            "--provider",
+            "anthropic",
+            "--model",
+            "gpt-4o",
+            "--inform",
+            "test",
+        ],
         &[],
         Some(&path),
     );
@@ -710,15 +737,23 @@ fn debug_shows_prompt_and_response() {
     let mock = MockCli::claude(&response);
     let path = path_with_mock(mock.path());
 
-    let (code, _, stderr) = run_tai(
-        &["--debug", "--inform", "list files"],
-        &[],
-        Some(&path),
-    );
+    let (code, _, stderr) = run_tai(&["--debug", "--inform", "list files"], &[], Some(&path));
     assert_eq!(code, 0, "stderr: {}", stderr);
-    assert!(stderr.contains("--- PROMPT ---"), "should show prompt: {}", stderr);
-    assert!(stderr.contains("--- RESPONSE ---"), "should show response: {}", stderr);
-    assert!(stderr.contains("list files"), "prompt should contain query: {}", stderr);
+    assert!(
+        stderr.contains("--- PROMPT ---"),
+        "should show prompt: {}",
+        stderr
+    );
+    assert!(
+        stderr.contains("--- RESPONSE ---"),
+        "should show response: {}",
+        stderr
+    );
+    assert!(
+        stderr.contains("list files"),
+        "prompt should contain query: {}",
+        stderr
+    );
 }
 
 // ============================================================================
@@ -752,7 +787,12 @@ fn stdin_pipe_with_prompt() {
 
     let code = output.status.code().unwrap_or(-1);
     let _ = path; // keep mock alive
-    assert_eq!(code, 0, "stderr: {}", String::from_utf8_lossy(&output.stderr));
+    assert_eq!(
+        code,
+        0,
+        "stderr: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
 }
 
 // ============================================================================
@@ -765,11 +805,7 @@ fn default_model_anthropic_in_debug() {
     let mock = MockCli::claude(&response);
     let path = path_with_mock(mock.path());
 
-    let (code, _, stderr) = run_tai(
-        &["--debug", "--inform", "test"],
-        &[],
-        Some(&path),
-    );
+    let (code, _, stderr) = run_tai(&["--debug", "--inform", "test"], &[], Some(&path));
     assert_eq!(code, 0, "stderr: {}", stderr);
     // The prompt should contain the env context, not the model name directly,
     // but the claude mock is called with --model claude-sonnet-4-20250514
@@ -823,7 +859,11 @@ fn oauth_discovery_prefers_cli_when_available() {
         &[("HOME", temp_home.path().to_str().unwrap())],
         Some(&path),
     );
-    assert_eq!(code, 0, "should succeed with OAuth + CLI, stderr: {}", stderr);
+    assert_eq!(
+        code, 0,
+        "should succeed with OAuth + CLI, stderr: {}",
+        stderr
+    );
     assert!(stdout.contains("echo oauth-test"), "stdout: {}", stdout);
 }
 
@@ -916,11 +956,7 @@ fn missing_oauth_falls_through_to_cli() {
 fn openai_error_does_not_mention_claude() {
     let path = path_without_cli_tools();
 
-    let (_, _, stderr) = run_tai(
-        &["--provider", "openai", "test"],
-        &[],
-        Some(&path),
-    );
+    let (_, _, stderr) = run_tai(&["--provider", "openai", "test"], &[], Some(&path));
     assert!(
         !stderr.contains("claude"),
         "OpenAI error should not mention claude: {}",
@@ -932,11 +968,7 @@ fn openai_error_does_not_mention_claude() {
 fn google_error_does_not_mention_claude_or_codex() {
     let path = path_without_cli_tools();
 
-    let (_, _, stderr) = run_tai(
-        &["--provider", "google", "test"],
-        &[],
-        Some(&path),
-    );
+    let (_, _, stderr) = run_tai(&["--provider", "google", "test"], &[], Some(&path));
     assert!(
         !stderr.contains("claude") && !stderr.contains("codex"),
         "Google error should not mention other providers: {}",

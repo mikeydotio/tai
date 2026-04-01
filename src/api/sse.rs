@@ -3,17 +3,13 @@ use std::io::{BufRead, BufReader, Read, Write};
 use crate::error::TaiError;
 
 /// Parse Anthropic SSE stream format.
-pub fn parse_anthropic_stream(
-    reader: impl Read,
-    out: &mut dyn Write,
-) -> Result<String, TaiError> {
+pub fn parse_anthropic_stream(reader: impl Read, out: &mut dyn Write) -> Result<String, TaiError> {
     let buf_reader = BufReader::new(reader);
     let mut accumulated = String::new();
     let mut event_type = String::new();
 
     for line in buf_reader.lines() {
-        let line =
-            line.map_err(|e| TaiError::ApiRequest(format!("stream read error: {}", e)))?;
+        let line = line.map_err(|e| TaiError::ApiRequest(format!("stream read error: {}", e)))?;
 
         if let Some(evt) = line.strip_prefix("event: ") {
             event_type = evt.to_string();
@@ -38,16 +34,12 @@ pub fn parse_anthropic_stream(
 }
 
 /// Parse OpenAI SSE stream format.
-pub fn parse_openai_stream(
-    reader: impl Read,
-    out: &mut dyn Write,
-) -> Result<String, TaiError> {
+pub fn parse_openai_stream(reader: impl Read, out: &mut dyn Write) -> Result<String, TaiError> {
     let buf_reader = BufReader::new(reader);
     let mut accumulated = String::new();
 
     for line in buf_reader.lines() {
-        let line =
-            line.map_err(|e| TaiError::ApiRequest(format!("stream read error: {}", e)))?;
+        let line = line.map_err(|e| TaiError::ApiRequest(format!("stream read error: {}", e)))?;
 
         if let Some(data) = line.strip_prefix("data: ") {
             if data == "[DONE]" {
@@ -71,16 +63,12 @@ pub fn parse_openai_stream(
 }
 
 /// Parse Gemini SSE stream format.
-pub fn parse_gemini_stream(
-    reader: impl Read,
-    out: &mut dyn Write,
-) -> Result<String, TaiError> {
+pub fn parse_gemini_stream(reader: impl Read, out: &mut dyn Write) -> Result<String, TaiError> {
     let buf_reader = BufReader::new(reader);
     let mut accumulated = String::new();
 
     for line in buf_reader.lines() {
-        let line =
-            line.map_err(|e| TaiError::ApiRequest(format!("stream read error: {}", e)))?;
+        let line = line.map_err(|e| TaiError::ApiRequest(format!("stream read error: {}", e)))?;
 
         if let Some(data) = line.strip_prefix("data: ")
             && let Ok(parsed) = serde_json::from_str::<serde_json::Value>(data)

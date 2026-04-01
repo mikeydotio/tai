@@ -62,9 +62,7 @@ fn detect_from_parent() -> Option<String> {
             .output()
         {
             if output.status.success() {
-                let name = basename_from_path(
-                    &String::from_utf8_lossy(&output.stdout),
-                );
+                let name = basename_from_path(&String::from_utf8_lossy(&output.stdout));
                 if !name.is_empty() {
                     return Some(name);
                 }

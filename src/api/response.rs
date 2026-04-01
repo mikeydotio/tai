@@ -87,7 +87,11 @@ mod tests {
         let err = parse_response(raw).unwrap_err();
         assert!(matches!(err, TaiError::ResponseParse(_)));
         let msg = err.to_string();
-        assert!(msg.contains("explanation"), "error should mention missing field: {}", msg);
+        assert!(
+            msg.contains("explanation"),
+            "error should mention missing field: {}",
+            msg
+        );
     }
 
     #[test]
@@ -96,6 +100,10 @@ mod tests {
         let err = parse_response(raw).unwrap_err();
         assert!(matches!(err, TaiError::ResponseParse(_)));
         let msg = err.to_string();
-        assert!(msg.contains("..."), "error should contain truncated content: {}", msg);
+        assert!(
+            msg.contains("..."),
+            "error should contain truncated content: {}",
+            msg
+        );
     }
 }

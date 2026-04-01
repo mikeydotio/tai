@@ -1,5 +1,5 @@
-use crate::api::sse;
 use crate::api::ApiBackend;
+use crate::api::sse;
 use crate::error::TaiError;
 
 const API_URL: &str = "https://api.anthropic.com/v1/messages";
@@ -48,9 +48,7 @@ impl ApiBackend for DirectApiBackend {
 
         // Extract content[0].text from the Messages API response
         let parsed: serde_json::Value = serde_json::from_str(&response_text)
-            .map_err(|e| {
-                TaiError::ApiRequest(format!("failed to parse API response: {}", e))
-            })?;
+            .map_err(|e| TaiError::ApiRequest(format!("failed to parse API response: {}", e)))?;
 
         parsed
             .get("content")
