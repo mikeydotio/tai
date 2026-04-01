@@ -128,6 +128,7 @@ fn run_tai(
     cmd.env_remove("OPENAI_API_KEY");
     cmd.env_remove("GEMINI_API_KEY");
     cmd.env_remove("GOOGLE_API_KEY");
+    cmd.env_remove("CLAUDE_CODE_OAUTH_TOKEN");
     cmd.env_remove("XDG_CONFIG_HOME");
 
     // Apply overrides
@@ -770,6 +771,7 @@ fn stdin_pipe_with_prompt() {
         .args(["--inform", "prefix"])
         .env("PATH", path_with_mock(mock.path()))
         .env_remove("ANTHROPIC_API_KEY")
+        .env_remove("CLAUDE_CODE_OAUTH_TOKEN")
         .env_remove("XDG_CONFIG_HOME")
         .stdin(std::process::Stdio::piped())
         .stdout(std::process::Stdio::piped())
@@ -946,6 +948,90 @@ fn missing_oauth_falls_through_to_cli() {
         Some(&path),
     );
     assert_eq!(code, 0, "should fall through to CLI, stderr: {}", stderr);
+}
+
+// ============================================================================
+// CLAUDE_CODE_OAUTH_TOKEN env var
+// ============================================================================
+
+#[test]
+fn claude_code_oauth_token_reaches_api() {
+    // CLAUDE_CODE_OAUTH_TOKEN should be used for direct API with Bearer auth
+    let path = path_without_cli_tools();
+    let temp_home = tempfile::tempdir().unwrap();
+
+    let (code, _, stderr) = run_tai(
+        &["--inform", "test"],
+        &[
+            ("CLAUDE_CODE_OAUTH_TOKEN", "sk-ant-oat01-fake-token"),
+            ("HOME", temp_home.path().to_str().unwrap()),
+        ],
+        Some(&path),
+    );
+    // Should reach API call (76), not CLI not found (69) or config error (65)
+    assert_eq!(
+        code, 76,
+        "should use OAuth token for direct API, stderr: {}",
+        stderr
+    );
+}
+
+#[test]
+fn claude_code_oauth_token_takes_priority_over_credentials_file() {
+    // CLAUDE_CODE_OAUTH_TOKEN env var should be preferred over credentials file
+    let temp_home = tempfile::tempdir().unwrap();
+    let claude_dir = temp_home.path().join(".claude");
+    fs::create_dir_all(&claude_dir).unwrap();
+    fs::write(
+        claude_dir.join(".credentials.json"),
+        r#"{
+            "claudeAiOauth": {
+                "accessToken": "sk-ant-oat01-file-token",
+                "refreshToken": "sk-ant-ort01-test-refresh",
+                "expiresAt": 9999999999999
+            }
+        }"#,
+    )
+    .unwrap();
+
+    let path = path_without_cli_tools();
+
+    let (code, _, stderr) = run_tai(
+        &["--inform", "test"],
+        &[
+            ("CLAUDE_CODE_OAUTH_TOKEN", "sk-ant-oat01-env-token"),
+            ("HOME", temp_home.path().to_str().unwrap()),
+        ],
+        Some(&path),
+    );
+    // Should reach API call (76), using the env var token
+    assert_eq!(
+        code, 76,
+        "should use CLAUDE_CODE_OAUTH_TOKEN, stderr: {}",
+        stderr
+    );
+}
+
+#[test]
+fn api_key_takes_priority_over_claude_code_oauth_token() {
+    // Explicit API key should win over CLAUDE_CODE_OAUTH_TOKEN
+    let path = path_without_cli_tools();
+    let temp_home = tempfile::tempdir().unwrap();
+
+    let (code, _, stderr) = run_tai(
+        &["--api-key", "sk-ant-api03-explicit-key", "--inform", "test"],
+        &[
+            ("CLAUDE_CODE_OAUTH_TOKEN", "sk-ant-oat01-env-token"),
+            ("HOME", temp_home.path().to_str().unwrap()),
+        ],
+        Some(&path),
+    );
+    // Should reach API call (76) using the explicit key
+    assert_eq!(
+        code, 76,
+        "explicit api-key should win over CLAUDE_CODE_OAUTH_TOKEN, stderr: {}",
+        stderr
+    );
 }
 
 // ============================================================================

@@ -29,6 +29,8 @@ pub fn create_backend(config: &ResolvedConfig) -> Result<Box<dyn ApiBackend>, Ta
         Provider::Anthropic => {
             if let Some(ref key) = config.api_key {
                 Ok(Box::new(direct::DirectApiBackend::new(key.clone())))
+            } else if let Ok(token) = std::env::var("CLAUDE_CODE_OAUTH_TOKEN") {
+                Ok(Box::new(direct::DirectApiBackend::with_bearer(token)))
             } else if let Some(oauth_creds) = oauth::discover_claude_oauth() {
                 // OAuth found — prefer CLI if available (OAuth tokens may not
                 // work directly with api.anthropic.com)
@@ -36,7 +38,7 @@ pub fn create_backend(config: &ResolvedConfig) -> Result<Box<dyn ApiBackend>, Ta
                     Ok(Box::new(claude_cli::ClaudeCliBackend))
                 } else {
                     // Try direct API with OAuth token as fallback
-                    Ok(Box::new(direct::DirectApiBackend::new(
+                    Ok(Box::new(direct::DirectApiBackend::with_bearer(
                         oauth_creds.access_token,
                     )))
                 }

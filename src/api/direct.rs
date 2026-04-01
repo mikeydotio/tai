@@ -5,13 +5,33 @@ use crate::error::TaiError;
 const API_URL: &str = "https://api.anthropic.com/v1/messages";
 const ANTHROPIC_VERSION: &str = "2023-06-01";
 
+pub enum AuthMethod {
+    ApiKey(String),
+    Bearer(String),
+}
+
 pub struct DirectApiBackend {
-    api_key: String,
+    auth: AuthMethod,
 }
 
 impl DirectApiBackend {
     pub fn new(api_key: String) -> Self {
-        Self { api_key }
+        Self {
+            auth: AuthMethod::ApiKey(api_key),
+        }
+    }
+
+    pub fn with_bearer(token: String) -> Self {
+        Self {
+            auth: AuthMethod::Bearer(token),
+        }
+    }
+
+    fn auth_header(&self) -> (&str, String) {
+        match &self.auth {
+            AuthMethod::ApiKey(key) => ("x-api-key", key.clone()),
+            AuthMethod::Bearer(token) => ("Authorization", format!("Bearer {}", token)),
+        }
     }
 
     fn build_body(&self, prompt: &str, model: &str, stream: bool) -> String {
@@ -34,10 +54,11 @@ impl ApiBackend for DirectApiBackend {
     fn call(&self, prompt: &str, model: &str) -> Result<String, TaiError> {
         let body = self.build_body(prompt, model, false);
 
+        let (auth_name, auth_value) = self.auth_header();
         let mut response = ureq::post(API_URL)
-            .header("x-api-key", &self.api_key)
             .header("anthropic-version", ANTHROPIC_VERSION)
             .header("content-type", "application/json")
+            .header(auth_name, &auth_value)
             .send(body.as_bytes())
             .map_err(|e| TaiError::ApiRequest(format!("API request failed: {}", e)))?;
 
@@ -73,10 +94,11 @@ impl ApiBackend for DirectApiBackend {
     ) -> Result<String, TaiError> {
         let body = self.build_body(prompt, model, true);
 
+        let (auth_name, auth_value) = self.auth_header();
         let response = ureq::post(API_URL)
-            .header("x-api-key", &self.api_key)
             .header("anthropic-version", ANTHROPIC_VERSION)
             .header("content-type", "application/json")
+            .header(auth_name, &auth_value)
             .send(body.as_bytes())
             .map_err(|e| TaiError::ApiRequest(format!("API request failed: {}", e)))?;
 
