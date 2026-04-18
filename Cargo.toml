@@ -3,6 +3,7 @@ name = "tai"
 version = "0.2.1"
 edition = "2024"
 description = "Fast, context-aware terminal AI assistant"
+license = "MIT"
 
 [lib]
 name = "tai"

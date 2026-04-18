@@ -199,5 +199,4 @@ tai --debug <prompt>      # inspect the full prompt and response
 
 ## License
 
-MIT. (Add a `LICENSE` file and `license = "MIT"` to `Cargo.toml` to make
-this official.)
+MIT — see [LICENSE](LICENSE).
