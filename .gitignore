@@ -1,2 +1,3 @@
-.planning/
 secrets.env
+
+# .storyhook/ is version-controlled project data — do not ignore
