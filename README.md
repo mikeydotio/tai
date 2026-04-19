@@ -11,17 +11,25 @@ Backed by Claude, OpenAI, or Gemini.
 
 ## Install
 
+```bash
+curl -fsSL https://raw.githubusercontent.com/mikeydotio/tai/main/scripts/install.sh | sh
+```
+
+Downloads the latest pre-built binary for your platform (Linux x86_64/aarch64,
+macOS x86_64/arm64), verifies its SHA-256, and installs it to
+`$HOME/.local/bin`. No Rust toolchain required, no `sudo`.
+
+- Pin a version: `TAI_VERSION=v0.2.0 curl … | sh`
+- Different install dir: `TAI_INSTALL_DIR=/usr/local/bin curl … | sh`
+
+### Build from source
+
 Requires a recent Rust toolchain.
 
 ```bash
-cargo build --release
-cp target/release/tai ~/.local/bin/   # or anywhere on PATH
-```
-
-Or install with cargo directly:
-
-```bash
 cargo install --path .
+# or
+cargo build --release && cp target/release/tai ~/.local/bin/
 ```
 
 You also need either the `claude` CLI on `PATH`, or an API key in your
